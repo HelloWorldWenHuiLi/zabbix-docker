@@ -74,9 +74,9 @@ docker-compose_v3_ubuntu_pgsql_local.yaml	#本地构建和运行基于Ubuntu的Z
 - 下载并且导入容器
 
 ```shell
-wget https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/zabbix-image-6.0.tar.gz
-tar xf zabbix-image-6.0.tar.gz
-cd zabbix-image-6.0
+wget https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/zabbix-image-5.4.tar.gz
+tar xf zabbix-image-5.4.tar.gz
+cd zabbix-image-5.4
 ./docker_load.sh
 docker image ls -a
 ```
@@ -93,7 +93,7 @@ cd zabbix-docker
 
 ```shell
 #切换部署版本
-git checkout 6.0 
+git checkout 5.4 
 
 #运行Zabbix容器
 docker-compose up -d
@@ -106,7 +106,7 @@ docker-compose down
 
 ```shell
 #切换部署版本
-git checkout 6.0 
+git checkout 5.4 
 
 #运行Zabbix容器
 docker-compose --profile=all up -d
@@ -159,7 +159,7 @@ docker run --name zabbix-agent -it \
       -e ZBX_HOSTNAME="zabbix-server" \
       -e ZBX_SERVER_HOST="宿主机IP地址" \
       -e ZBX_SERVER_PORT=10051 \
-      -d zabbix/zabbix-agent:alpine-6.0-latest  
+      -d zabbix/zabbix-agent:alpine-5.4-latest  
 ```
 
 
@@ -169,9 +169,9 @@ docker run --name zabbix-agent -it \
 ```shell
 #打开zabbix后看见下方提示zabbix server is not running: the information displayed may not be current
 docker logs -f zabbix-server
-Starting Zabbix Server. Zabbix 6.0.1 (revision a80cb13).
+Starting Zabbix Server. Zabbix 5.4.1 (revision a80cb13).
 Press Ctrl+C to exit.
-     8:20220313:155643.869 Starting Zabbix Server. Zabbix 6.0.1 (revision a80cb13).
+     8:20220313:155643.869 Starting Zabbix Server. Zabbix 5.4.1 (revision a80cb13).
      8:20220313:155643.869 ****** Enabled features ******
      8:20220313:155643.869 SNMP monitoring:           YES
      8:20220313:155643.869 IPMI monitoring:           YES
@@ -208,7 +208,7 @@ Press Ctrl+C to exit.
      8:20220313:155644.915 One child process died (PID:210,exitcode/signal:1). Exiting ...
    208:20220313:155644.915 HA manager has been paused
    208:20220313:155644.937 HA manager has been stopped
-     8:20220313:155644.938 Zabbix Server stopped. Zabbix 6.0.1 (revision a80cb13).
+     8:20220313:155644.938 Zabbix Server stopped. Zabbix 5.4.1 (revision a80cb13).
 
 #出现zabbix server is not running的两种原因
 mysql连接数量受限制
@@ -239,28 +239,6 @@ zabbix-web-nginx
 #将字体拷贝到容器内部
 wget https://drive.yangwn.top/d/Onedrive/Linux/Docker/Zabbix/msyh.ttc
 docker cp msyh.ttc zabbix-web-nginx:/usr/share/zabbix/assets/fonts/DejaVuSans.ttf
-```
-
-
-
-## 拓扑图链路延迟Label示例
-
-```shell
-#4.0版本
-IN:{主机名称:键值.last(0)}
-OUT:{主机名称:键值.last(0)}
-IN:{A1 Switch:net.if.in[ifHCInOctets.369098752].last(0)}
-OUT:{A1 Switch:net.if.out[ifHCOutOctets.369098752].last(0)}
-
-
-#6.0版本
-IN:{?last(/主机名称/键值)}
-OUT:{主机名称:键值.last(0)}
-IN:{?last(/A1 Switch/net.if.in[ifHCInOctets.369098752])}
-OUT:{?last(/A1 Switch/net.if.out[ifHCOutOctets.369098752])}
-
-#参考博文
-https://cloud.tencent.com/developer/article/1956234
 ```
 
 
@@ -298,4 +276,3 @@ mysql> show variables like 'expire_logs_days';
 mysql> purge binary logs to 'binlog.000037';
 Query OK, 0 rows affected (0.07 sec)
 ```
-
