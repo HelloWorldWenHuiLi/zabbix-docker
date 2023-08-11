@@ -1,9 +1,7 @@
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:alpine-6.2-latest
-  container_name: zabbix-server
-  restart: always  
+  image: zabbix/zabbix-server-mysql:alpine-6.4-latest
   ports:
    - "10051:10051"
   volumes:
@@ -11,6 +9,7 @@ services:
    - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ./zbx_env/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
    - ./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -38,6 +37,9 @@ services:
    - MYSQL_PASSWORD
    - MYSQL_ROOT_USER
    - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
   networks:
@@ -48,17 +50,23 @@ services:
       - zabbix-server-alpine-mysql
       - zabbix-server-mysql-alpine
    zbx_net_frontend:
+#  devices:
+#   - "/dev/ttyUSB0:/dev/ttyUSB0"
   stop_grace_period: 30s
   sysctls:
-   - net.ipv4.ip_local_port_range=1024 65000
+   - net.ipv4.ip_local_port_range=1024 64999
    - net.ipv4.conf.all.accept_redirects=0
    - net.ipv4.conf.all.secure_redirects=0
    - net.ipv4.conf.all.send_redirects=0
+  labels:
+   com.zabbix.description: "Zabbix server with MySQL database support"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "zabbix-server"
+   com.zabbix.dbtype: "mysql"
+   com.zabbix.os: "alpine"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:alpine-6.2-latest
-  container_name: zabbix-proxy-sqlite3
-  restart: always  
+  image: zabbix/zabbix-proxy-sqlite3:alpine-6.4-latest
   profiles:
    - all
   ports:
@@ -99,11 +107,15 @@ services:
      - zabbix-proxy-sqlite3-alpine
    zbx_net_frontend:
   stop_grace_period: 30s
+  labels:
+   com.zabbix.description: "Zabbix proxy with SQLite3 database support"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "zabbix-proxy"
+   com.zabbix.dbtype: "sqlite3"
+   com.zabbix.os: "alpine"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:alpine-6.2-latest
-  container_name: zabbix-proxy-mysql
-  restart: always  
+  image: zabbix/zabbix-proxy-mysql:alpine-6.4-latest
   profiles:
    - all
   ports:
@@ -143,6 +155,9 @@ services:
    - MYSQL_PASSWORD
    - MYSQL_ROOT_USER
    - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   networks:
    zbx_net_backend:
     aliases:
@@ -151,14 +166,18 @@ services:
      - zabbix-proxy-mysql-alpine
    zbx_net_frontend:
   stop_grace_period: 30s
+  labels:
+   com.zabbix.description: "Zabbix proxy with MySQL database support"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "zabbix-proxy"
+   com.zabbix.dbtype: "mysql"
+   com.zabbix.os: "alpine"
 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:alpine-6.2-latest
-  container_name: zabbix-web-nginx
-  restart: always  
+  image: zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest
   ports:
    - "80:8080"
-#   - "443:8443"
+   - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
@@ -178,11 +197,14 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -197,11 +219,16 @@ services:
   stop_grace_period: 10s
   sysctls:
    - net.core.somaxconn=65535
+  labels:
+   com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "zabbix-frontend"
+   com.zabbix.webserver: "nginx"
+   com.zabbix.dbtype: "mysql"
+   com.zabbix.os: "alpine"
 
 # zabbix-agent:
-#  image: zabbix/zabbix-agent:alpine-6.2-latest
-#  container_name: zabbix-agent
-#  restart: always
+#  image: zabbix/zabbix-agent:alpine-6.4-latest
 #  profiles:
 #   - full
 #   - all
@@ -234,11 +261,14 @@ services:
 #     - zabbix-agent-passive
 #     - zabbix-agent-alpine
 #  stop_grace_period: 5s
+#  labels:
+#   com.zabbix.description: "Zabbix agent"
+#   com.zabbix.company: "Zabbix LLC"
+#   com.zabbix.component: "zabbix-agentd"
+#   com.zabbix.os: "alpine"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:alpine-6.2-latest
-  container_name: zabbix-java-gateway
-  restart: always    
+  image: zabbix/zabbix-java-gateway:alpine-6.4-latest
   profiles:
    - full
    - all
@@ -267,9 +297,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:alpine-6.2-latest
-  container_name: zabbix-snmptraps   
-  restart: always
+  image: zabbix/zabbix-snmptraps:alpine-6.4-latest
   profiles:
    - full
    - all
@@ -291,11 +319,14 @@ services:
      - zabbix-snmptraps
    zbx_net_backend:
   stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix snmptraps"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "snmptraps"
+   com.zabbix.os: "alpine"
 
  zabbix-web-service:
-  image: zabbix/zabbix-web-service:alpine-6.2-latest
-  container_name: zabbix-web-service
-  restart: always  
+  image: zabbix/zabbix-web-service:alpine-6.4-latest
   profiles:
    - full
    - all
@@ -303,8 +334,8 @@ services:
    - "10053:10053"
   volumes:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-  cap_add:
-   - SYS_ADMIN
+  security_opt:
+   - seccomp:./env_vars/chrome_dp.json
   deploy:
    resources:
     limits:
@@ -321,11 +352,14 @@ services:
      - zabbix-web-service
      - zabbix-web-service-alpine
   stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix web service"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "web-service"
+   com.zabbix.os: "alpine"
 
  mysql-server:
   image: mysql:8.0-oracle
-  container_name: zabbix-db
-  restart: always    
   command:
    - mysqld
 #   - --port=3306     
@@ -333,17 +367,23 @@ services:
    - --collation-server=utf8mb4_bin
    - --skip-character-set-client-handshake
    - --default-authentication-plugin=mysql_native_password
-   - --max_connections=2000
-   - --mysqlx_max_connections=2000   
-#   - --require-secure-transport   
+   - --mysqlx_max_connections=2000
+#   - --require-secure-transport
+#   - --ssl-ca=/run/secrets/root-ca.pem
+#   - --ssl-cert=/run/secrets/server-cert.pem
+#   - --ssl-key=/run/secrets/server-key.pem
   volumes:
-   - ./mysql:/var/lib/mysql:rw
+   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+#   - dbsocket:/var/run/mysqld/
   env_file:
    - ./env_vars/.env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - server-key.pem
+#   - server-cert.pem
+#   - root-ca.pem
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
@@ -351,6 +391,24 @@ services:
      - mysql-server
      - zabbix-database
      - mysql-database
+
+ db_data_mysql:
+  image: busybox
+  volumes:
+   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+
+# elasticsearch:
+#  image: elasticsearch
+#  profiles:
+#   - full
+#   - all
+#  environment:
+#   - transport.host=0.0.0.0
+#   - discovery.zen.minimum_master_nodes=1
+#  networks:
+#   zbx_net_backend:
+#    aliases:
+#     - elasticsearch
 
 networks:
   zbx_net_frontend:
@@ -365,6 +423,7 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
+    #此参数可以保证运行在zbx_net_backend网络的容器无法通过保留端口  
     internal: true
     ipam:
       driver: default
@@ -373,6 +432,7 @@ networks:
 
 volumes:
   snmptraps:
+#  dbsocket:
 
 secrets:
   MYSQL_USER:
@@ -383,3 +443,13 @@ secrets:
     file: ./env_vars/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
+#  client-key.pem:
+#    file: ./env_vars/.ZBX_DB_KEY_FILE
+#  client-cert.pem:
+#    file: ./env_vars/.ZBX_DB_CERT_FILE
+#  root-ca.pem:
+#    file: ./env_vars/.ZBX_DB_CA_FILE
+#  server-cert.pem:
+#    file: ./env_vars/.DB_CERT_FILE
+#  server-key.pem:
+#    file: ./env_vars/.DB_KEY_FILE

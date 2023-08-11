@@ -58,16 +58,16 @@ docker-compose -v
 #网络状况比较好的情况可以不用导入
 
 #导入alpine系统的容器镜像（默认的）
-wget --no-check-certificate https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/images/zabbix-image-6.2.tar.gz
-tar xf zabbix-image-6.2.tar.gz
-cd zabbix-image-6.2
+wget --no-check-certificate https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/images/zabbix-image-6.4.tar.gz
+tar xf zabbix-image-6.4.tar.gz
+cd zabbix-image-6.4
 ./docker_load.sh
 docker image ls -a
 
 #导入centos系统的容器镜像（需要修改docker-compose.yaml的启动镜像）
-wget --no-check-certificate https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/images/zabbix-image-6.2-centos.tar.gz
-tar xf zabbix-image-6.2-centos.tar.gz
-cd zabbix-image-6.2-centos
+wget --no-check-certificate https://drive.yangwn.top/d/AliDrive/Linux/Docker/Zabbix/images/zabbix-image-6.4-centos.tar.gz
+tar xf zabbix-image-6.4-centos.tar.gz
+cd zabbix-image-6.4-centos
 ./docker_load.sh
 docker image ls -a
 ```
@@ -84,7 +84,7 @@ cd zabbix-docker
 
 ```shell
 #切换部署版本
-git checkout 6.2 
+git checkout 6.4 
 
 #运行Zabbix容器（必须要和启动yaml文件在同级目录）
 docker-compose up -d
@@ -93,14 +93,14 @@ docker-compose up -d
 docker-compose down
 
 #修改使用centos系统的容器镜像（默认使用alpine系统的容器镜像）
-sed -i 's#alpine-6.2#centos-6.2#g' docker-compose.yaml
+sed -i 's#alpine-6.4#centos-6.4#g' docker-compose.yaml
 ```
 
 - 部署完整功能版本
 
 ```shell
 #切换部署版本
-git checkout 6.2 
+git checkout 6.4 
 
 #运行Zabbix容器（必须要和启动yaml文件在同级目录）
 docker-compose --profile=all up -d
@@ -109,7 +109,7 @@ docker-compose --profile=all up -d
 docker-compose --profile=all down
 
 #修改使用centos系统的容器镜像（默认使用alpine系统的容器镜像）
-sed -i 's#alpine-6.2#centos-6.2#g' docker-compose.yaml
+sed -i 's#alpine-6.4#centos-6.4#g' docker-compose.yaml
 ```
 
 
@@ -144,7 +144,7 @@ docker run --name zabbix-agent -it \
       -e ZBX_HOSTNAME="zabbix-server" \
       -e ZBX_SERVER_HOST="宿主机IP地址" \
       -e ZBX_SERVER_PORT=10051 \
-      -d zabbix/zabbix-agent:alpine-6.2-latest  
+      -d zabbix/zabbix-agent:alpine-6.4-latest  
 ```
 
 
